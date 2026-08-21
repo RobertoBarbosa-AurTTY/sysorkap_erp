@@ -1,0 +1,28 @@
+[build]
+  command = "npm run css:build && npm run typecheck"
+  functions = "netlify/functions"
+  publish = "public"
+
+[functions]
+  node_bundler = "esbuild"
+  external_node_modules = ["express"]
+
+[functions.site]
+  included_files = ["netlify/functions/site/views/**"]
+
+[[redirects]]
+  force = true
+  from = "/api/*"
+  to = "/.netlify/functions/:splat"
+  status = 200
+
+[[redirects]]
+  force = true
+  from = "/"
+  to = "/.netlify/functions/site"
+  status = 200
+
+[[redirects]]
+  from = "/*"
+  to = "/.netlify/functions/site/:splat"
+  status = 200
