@@ -1,0 +1,382 @@
+<!DOCTYPE html>
+<html lang="pt-BR">
+<head>
+  <%- include("../../partials/head") %>
+</head>
+<body class="min-h-screen bg-zinc-950 text-zinc-100 antialiased">
+  <%- include("../../partials/sidebar") %>
+  <%- include("../../partials/tabbar") %>
+  <div class="flex min-h-screen flex-col md:pl-72">
+    <%- include("../../partials/topbar") %>
+    <main class="flex-1 px-4 py-6 pb-28 sm:px-6 md:pb-10 lg:px-8">
+      <div class="mb-5 flex flex-wrap items-end justify-between gap-4">
+        <div>
+          <h2 class="text-xl font-bold tracking-tight text-white">Novo produto</h2>
+          <p class="mt-0.5 text-sm text-zinc-400">Cadastre vários produtos de uma vez. Preencha a linha e pressione <kbd class="rounded-md border border-white/10 bg-white/5 px-1.5 py-0.5 text-[11px] font-semibold text-zinc-300">Enter</kbd> para avançar.</p>
+        </div>
+        <span id="contador" class="rounded-full border border-white/10 bg-white/5 px-3 py-1 text-xs font-medium tabular-nums text-zinc-300">13 linhas</span>
+      </div>
+
+      <form id="form-lote">
+        <div class="overflow-hidden rounded-2xl border border-white/10 bg-zinc-900/60 shadow-lg shadow-black/20">
+          <div class="max-h-[62vh] overflow-auto">
+            <table class="w-full min-w-[1720px] border-collapse text-sm">
+              <thead class="sticky top-0 z-10">
+                <tr class="bg-zinc-900 text-left text-[11px] font-semibold uppercase tracking-wider text-zinc-400 shadow-[0_1px_0_0_rgba(255,255,255,0.08)]">
+                  <th class="w-12 px-2 py-3 text-center">#</th>
+                  <th class="w-10 px-1 py-3"></th>
+                  <th class="px-3 py-3">Nome <span class="text-primary">*</span></th>
+                  <th class="px-3 py-3">SKU <span class="text-primary">*</span></th>
+                  <th class="px-3 py-3">Categoria</th>
+                  <th class="px-3 py-3">Fornecedor</th>
+                  <th class="px-3 py-3">Un.</th>
+                  <th class="px-3 py-3">Qtd atual</th>
+                  <th class="px-3 py-3">Qtd mín.</th>
+                  <th class="px-3 py-3">Custo R$</th>
+                  <th class="px-3 py-3">Venda R$</th>
+                  <th class="px-3 py-3">Cód. barras</th>
+                  <th class="px-3 py-3">Estante</th>
+                  <th class="px-3 py-3">Nível</th>
+                  <th class="px-3 py-3">Apto</th>
+                  <th class="px-3 py-3 pr-4">Imagem (URL)</th>
+                </tr>
+              </thead>
+              <tbody id="corpo-tabela"></tbody>
+            </table>
+          </div>
+          <div class="flex items-center justify-between gap-3 border-t border-white/10 bg-zinc-900/80 px-4 py-2.5">
+            <button type="button" id="adicionar-linha"
+              class="inline-flex items-center gap-1.5 rounded-lg border border-white/10 bg-white/5 px-3 py-1.5 text-xs font-medium text-zinc-200 transition-colors hover:border-primary/40 hover:bg-primary/10 hover:text-white">
+              <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" class="h-3.5 w-3.5"><path d="M12 5v14"/><path d="M5 12h14"/></svg>
+              Adicionar linha
+            </button>
+            <p class="hidden text-xs text-zinc-500 sm:block"><kbd class="rounded border border-white/10 bg-white/5 px-1 py-0.5 text-[10px] text-zinc-400">Enter</kbd> próximo campo &middot; <kbd class="rounded border border-white/10 bg-white/5 px-1 py-0.5 text-[10px] text-zinc-400">Shift+Enter</kbd> voltar</p>
+          </div>
+        </div>
+
+        <div class="mt-5 flex items-center justify-end gap-3">
+          <a href="/estoque" class="rounded-xl px-4 py-2.5 text-sm font-medium text-zinc-400 transition-colors hover:bg-white/5 hover:text-white">Cancelar</a>
+          <button type="submit" id="botao-salvar"
+            class="inline-flex items-center gap-2 rounded-xl bg-gradient-to-r from-primary to-primary-dark px-5 py-2.5 text-sm font-semibold text-white shadow-lg shadow-primary/25 transition-transform hover:scale-[1.02] active:scale-[0.98] disabled:pointer-events-none disabled:opacity-60">
+            Salvar produtos
+          </button>
+        </div>
+      </form>
+    </main>
+  </div>
+
+  <template id="modelo-linha">
+    <tr class="group border-b border-white/5 transition-colors odd:bg-white/[0.015] hover:bg-white/[0.03] focus-within:bg-primary/[0.05] focus-within:shadow-[inset_2px_0_0_0_theme(colors.primary)]">
+      <td class="celula-num px-2 py-1.5 text-center text-xs tabular-nums text-zinc-600"></td>
+      <td class="px-1 py-1.5 text-center">
+        <button type="button" data-remover title="Remover linha"
+          class="grid h-7 w-7 place-items-center rounded-lg text-zinc-700 opacity-0 transition-all hover:bg-red-500/10 hover:text-red-400 group-hover:opacity-100 disabled:pointer-events-none disabled:opacity-0">
+          <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" class="h-4 w-4"><path d="M18 6 6 18"/><path d="m6 6 12 12"/></svg>
+        </button>
+      </td>
+      <td class="px-3 py-1.5"><input type="text" name="nome" placeholder="Ex.: Teclado mecânico" class="campo w-[190px]" /></td>
+      <td class="px-3 py-1.5"><input type="text" name="sku" placeholder="TEC-001" class="campo w-[110px] uppercase" /></td>
+      <td class="px-3 py-1.5"><input type="text" name="categoria" placeholder="Periféricos" class="campo w-[130px]" /></td>
+      <td class="px-3 py-1.5"><input type="text" name="fornecedor" placeholder="TechDistribuidora" class="campo w-[150px]" /></td>
+      <td class="px-3 py-1.5">
+        <select name="unidade" class="campo w-[72px]">
+          <option value="un">un</option>
+          <option value="cx">cx</option>
+          <option value="kg">kg</option>
+          <option value="g">g</option>
+          <option value="L">L</option>
+          <option value="ml">ml</option>
+          <option value="m">m</option>
+        </select>
+      </td>
+      <td class="px-3 py-1.5"><input type="number" name="quantidadeAtual" min="0" step="any" value="0" class="campo w-[92px] tabular-nums" /></td>
+      <td class="px-3 py-1.5"><input type="number" name="quantidadeMinima" min="0" step="any" value="0" class="campo w-[92px] tabular-nums" /></td>
+      <td class="px-3 py-1.5"><input type="number" name="precoCusto" min="0" step="0.01" value="0" class="campo w-[112px] tabular-nums" /></td>
+      <td class="px-3 py-1.5"><input type="number" name="precoVenda" min="0" step="0.01" value="0" class="campo w-[112px] tabular-nums" /></td>
+      <td class="px-3 py-1.5"><input type="text" name="codigoBarras" placeholder="0789101112" class="campo w-[140px] tabular-nums" /></td>
+      <td class="px-3 py-1.5"><input type="text" name="estante" placeholder="A1" class="campo w-[84px] uppercase" /></td>
+      <td class="px-3 py-1.5"><input type="text" name="nivel" placeholder="2" class="campo w-[84px] uppercase" /></td>
+      <td class="px-3 py-1.5"><input type="text" name="apto" placeholder="3" class="campo w-[84px] uppercase" /></td>
+      <td class="px-3 py-1.5 pr-4"><input type="url" name="imagem" placeholder="https://..." class="campo w-[190px]" /></td>
+    </tr>
+  </template>
+
+  <div id="modal" class="pointer-events-none fixed inset-0 z-[60]" aria-hidden="true">
+    <div data-modal-fundo class="absolute inset-0 bg-black/70 opacity-0 backdrop-blur-sm transition-opacity duration-200"></div>
+    <div class="absolute inset-0 grid place-items-center p-4">
+      <div data-modal-cartao
+        class="w-full max-w-md scale-95 rounded-2xl border border-white/10 bg-zinc-900 p-5 opacity-0 shadow-2xl shadow-black/50 transition-all duration-200">
+        <div class="flex items-start gap-3.5">
+          <span data-modal-icone class="grid h-10 w-10 shrink-0 place-items-center rounded-xl"></span>
+          <div class="min-w-0 flex-1">
+            <p data-modal-titulo class="text-sm font-semibold text-white"></p>
+            <ul data-modal-lista class="mt-2 max-h-52 space-y-1 overflow-y-auto text-[13px] leading-snug text-zinc-300 [&>li]:list-inside [&>li]:list-disc [&>li]:marker:text-zinc-500"></ul>
+          </div>
+        </div>
+        <div class="mt-5 flex justify-end gap-2">
+          <button type="button" data-modal-cancelar
+            class="hidden rounded-xl px-4 py-2 text-sm font-medium text-zinc-400 transition-colors hover:bg-white/5 hover:text-white">Voltar e corrigir</button>
+          <button type="button" data-modal-ok
+            class="rounded-xl bg-gradient-to-r from-primary to-primary-dark px-4 py-2 text-sm font-semibold text-white shadow-lg shadow-primary/25 transition-transform hover:scale-[1.02] active:scale-[0.98]">Entendi</button>
+        </div>
+      </div>
+    </div>
+  </div>
+
+  <script>
+    (() => {
+      const corpo = document.getElementById("corpo-tabela");
+      const modelo = document.getElementById("modelo-linha");
+      const form = document.getElementById("form-lote");
+      const contador = document.getElementById("contador");
+      const botaoSalvar = document.getElementById("botao-salvar");
+
+      const modal = document.getElementById("modal");
+      const modalFundo = modal.querySelector("[data-modal-fundo]");
+      const modalCartao = modal.querySelector("[data-modal-cartao]");
+      const modalIcone = modal.querySelector("[data-modal-icone]");
+      const modalTitulo = modal.querySelector("[data-modal-titulo]");
+      const modalLista = modal.querySelector("[data-modal-lista]");
+      const modalOk = modal.querySelector("[data-modal-ok]");
+      const modalCancelar = modal.querySelector("[data-modal-cancelar]");
+
+      const ICONE_ERRO = '<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" class="h-5 w-5"><circle cx="12" cy="12" r="10"/><path d="m15 9-6 6"/><path d="m9 9 6 6"/></svg>';
+      const ICONE_AVISO = '<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" class="h-5 w-5"><path d="m21.73 18-8-14a2 2 0 0 0-3.48 0l-8 14A2 2 0 0 0 4 21h16a2 2 0 0 0 1.73-3"/><path d="M12 9v4"/><path d="M12 17h.01"/></svg>';
+      const ICONE_OK = '<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" class="h-5 w-5"><path d="M21.801 10A10 10 0 1 1 17 3.335"/><path d="m9 11 3 3L22 4"/></svg>';
+
+      const ESTILOS_MODAL = {
+        erro: { classe: "border-red-500/20 bg-red-500/10 text-red-400", icone: ICONE_ERRO, titulo: "Não foi possível salvar" },
+        aviso: { classe: "border-amber-500/20 bg-amber-500/10 text-amber-400", icone: ICONE_AVISO, titulo: "Pendências na tabela" },
+        sucesso: { classe: "border-emerald-500/20 bg-emerald-500/10 text-emerald-400", icone: ICONE_OK, titulo: "Tudo certo" },
+      };
+
+      let fecharModalAtual = null;
+
+      function mostrarModal({ tipo, titulo, itens = [], textoOk = "Entendi", comCancelar = false, aoOk, aoCancelar }) {
+        const estilo = ESTILOS_MODAL[tipo] ?? ESTILOS_MODAL.aviso;
+        modalIcone.className = `grid h-10 w-10 shrink-0 place-items-center rounded-xl border ${estilo.classe}`;
+        modalIcone.innerHTML = estilo.icone;
+        modalTitulo.textContent = titulo ?? estilo.titulo;
+        modalLista.replaceChildren(...itens.map((texto) => {
+          const li = document.createElement("li");
+          li.textContent = texto;
+          return li;
+        }));
+        modalLista.classList.toggle("hidden", itens.length === 0);
+        modalOk.textContent = textoOk;
+        modalCancelar.classList.toggle("hidden", !comCancelar);
+
+        modal.classList.remove("pointer-events-none");
+        modal.setAttribute("aria-hidden", "false");
+        requestAnimationFrame(() => {
+          modalFundo.classList.add("opacity-100");
+          modalCartao.classList.remove("opacity-0", "scale-95");
+          modalCartao.classList.add("opacity-100", "scale-100");
+        });
+
+        let encerrado = false;
+        const fechar = (cancelou) => {
+          if (encerrado) return;
+          encerrado = true;
+          document.removeEventListener("keydown", aoTecla);
+          modalFundo.classList.remove("opacity-100");
+          modalCartao.classList.add("opacity-0", "scale-95");
+          modalCartao.classList.remove("opacity-100", "scale-100");
+          setTimeout(() => {
+            modal.classList.add("pointer-events-none");
+            modal.setAttribute("aria-hidden", "true");
+          }, 200);
+          if (cancelou && aoCancelar) aoCancelar();
+          else if (!cancelou && aoOk) aoOk();
+        };
+        const aoTecla = (evento) => {
+          if (evento.key === "Escape" && (comCancelar || tipo !== "sucesso")) fechar(comCancelar);
+          if (evento.key === "Enter") {
+            evento.preventDefault();
+            fechar(false);
+          }
+        };
+        document.addEventListener("keydown", aoTecla);
+        modalOk.onclick = () => fechar(false);
+        modalCancelar.onclick = () => fechar(true);
+        modalFundo.onclick = () => {
+          if (comCancelar || tipo !== "sucesso") fechar(comCancelar);
+        };
+        fecharModalAtual = fechar;
+        setTimeout(() => modalOk.focus(), 120);
+      }
+
+      const camposLinha = (linha) => [...linha.querySelectorAll("input,select")];
+      const linhas = () => [...corpo.querySelectorAll("tr")];
+
+      function atualizarContador() {
+        const total = linhas().length;
+        contador.textContent = total === 1 ? "1 linha" : `${total} linhas`;
+        linhas().forEach((linha, indice) => {
+          linha.querySelector(".celula-num").textContent = indice + 1;
+          linha.querySelector("[data-remover]").disabled = total === 1;
+        });
+      }
+
+      function novaLinha(focar = false) {
+        const linha = modelo.content.firstElementChild.cloneNode(true);
+        corpo.appendChild(linha);
+        atualizarContador();
+        if (focar) camposLinha(linha)[0].focus();
+        return linha;
+      }
+
+      function marcarInvalido(campo) {
+        campo.classList.add("campo-invalido");
+      }
+
+      corpo.addEventListener("input", (evento) => {
+        evento.target.classList.remove("campo-invalido");
+      });
+      corpo.addEventListener("change", (evento) => {
+        evento.target.classList.remove("campo-invalido");
+      });
+
+      corpo.addEventListener("click", (evento) => {
+        const botao = evento.target.closest("[data-remover]");
+        if (!botao) return;
+        if (linhas().length > 1) {
+          botao.closest("tr").remove();
+          atualizarContador();
+        }
+      });
+
+      form.addEventListener("keydown", (evento) => {
+        if (evento.key !== "Enter") return;
+        const alvo = evento.target;
+        if (!(alvo instanceof HTMLElement) || !alvo.matches("input,select")) return;
+        evento.preventDefault();
+        const todos = [...corpo.querySelectorAll("input,select")];
+        const indice = todos.indexOf(alvo);
+        const proximo = evento.shiftKey ? todos[indice - 1] : todos[indice + 1];
+        if (proximo) {
+          proximo.focus();
+          if (proximo instanceof HTMLInputElement && proximo.type === "text") proximo.select();
+        } else if (!evento.shiftKey) {
+          novaLinha(true);
+        }
+      });
+
+      document.getElementById("adicionar-linha").addEventListener("click", () => novaLinha(true));
+
+      window.addEventListener("beforeunload", (evento) => {
+        const temDados = linhas().some((linha) =>
+          camposLinha(linha).some((campo) => campo.name !== "unidade" && campo.value.trim() !== ""),
+        );
+        if (temDados) {
+          evento.preventDefault();
+          evento.returnValue = "";
+        }
+      });
+
+      form.addEventListener("submit", async (evento) => {
+        evento.preventDefault();
+
+        const produtos = [];
+        const pendencias = [];
+        let primeiroCampoInvalido = null;
+
+        linhas().forEach((linha, indice) => {
+          const numeroLinha = indice + 1;
+          const valores = {};
+          camposLinha(linha).forEach((campo) => { valores[campo.name] = campo.value.trim(); });
+          const vazia = Object.values(valores).every((v) => v === "");
+          if (vazia) return;
+
+          const invalidos = [];
+          if (valores.nome.length < 2) invalidos.push(["nome", "informe o nome do produto"]);
+          if (!valores.sku) invalidos.push(["sku", "informe o SKU"]);
+          ["precoCusto", "precoVenda", "quantidadeAtual", "quantidadeMinima"].forEach((campo) => {
+            const n = Number(valores[campo].replace(",", "."));
+            if (!Number.isFinite(n) || n < 0) invalidos.push([campo, `valor inválido em "${campo}"`]);
+          });
+
+          if (invalidos.length > 0) {
+            invalidos.forEach(([campo]) => {
+              const elemento = linha.querySelector(`[name="${campo}"]`);
+              marcarInvalido(elemento);
+              if (!primeiroCampoInvalido) primeiroCampoInvalido = elemento;
+            });
+            invalidos.forEach(([, mensagem]) => pendencias.push(`Linha ${numeroLinha}: ${mensagem}.`));
+            return;
+          }
+          produtos.push(valores);
+        });
+
+        const skusVistos = new Map();
+        for (const produto of produtos) {
+          if (skusVistos.has(produto.sku)) {
+            pendencias.push(`SKU ${produto.sku} repetido na lista.`);
+          } else {
+            skusVistos.set(produto.sku, true);
+          }
+        }
+
+        if (pendencias.length > 0) {
+          mostrarModal({
+            tipo: "aviso",
+            titulo: "Pendências na tabela",
+            itens: pendencias,
+            textoOk: "Corrigir depois",
+            comCancelar: false,
+            aoOk: () => primeiroCampoInvalido?.focus(),
+          });
+          return;
+        }
+
+        if (produtos.length === 0) {
+          mostrarModal({
+            tipo: "aviso",
+            titulo: "Nada para salvar",
+            itens: ["Preencha ao menos uma linha antes de salvar."],
+          });
+          return;
+        }
+
+        botaoSalvar.disabled = true;
+        botaoSalvar.textContent = "Salvando...";
+
+        try {
+          const resposta = await fetch("/estoque", {
+            method: "POST",
+            headers: { "Content-Type": "application/json" },
+            body: JSON.stringify({ produtos }),
+          });
+          const respostaCorpo = await resposta.json().catch(() => ({}));
+          if (resposta.ok && respostaCorpo.ok) {
+            mostrarModal({
+              tipo: "sucesso",
+              titulo: `${respostaCorpo.total} produto(s) cadastrado(s)!`,
+              itens: [],
+              textoOk: "Ir para o estoque",
+              aoOk: () => { window.location.href = "/estoque"; },
+            });
+            return;
+          }
+          mostrarModal({
+            tipo: "erro",
+            titulo: "Não foi possível salvar",
+            itens: respostaCorpo.erros ?? ["Tente novamente em instantes."],
+          });
+        } catch {
+          mostrarModal({
+            tipo: "erro",
+            titulo: "Falha de conexao",
+            itens: ["Verifique sua internet e tente novamente."],
+          });
+        } finally {
+          botaoSalvar.disabled = false;
+          botaoSalvar.textContent = "Salvar produtos";
+        }
+      });
+
+      for (let i = 0; i < 13; i++) novaLinha();
+    })();
+  </script>
+</body>
+</html>

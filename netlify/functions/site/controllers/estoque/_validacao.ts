@@ -62,3 +62,33 @@ export function erroSalvar(erro: unknown): string[] {
     ? ["Já existe um produto com esse SKU na sua conta."]
     : ["Não foi possível salvar o produto. Tente novamente."];
 }
+
+export function validarLote(bruto: unknown[]): { dados: NovoProduto[]; erros: string[] } {
+  const dados: NovoProduto[] = [];
+  const erros: string[] = [];
+  const skusVistos = new Set<string>();
+
+  bruto.forEach((item, indice) => {
+    const corpo = (item ?? {}) as FormProduto;
+    const vazia = Object.values(corpo).every((v) => typeof v !== "string" || v.trim() === "");
+    if (vazia) return;
+
+    const linha = indice + 1;
+    const { dados: produto, erros: errosProduto } = validarProduto(corpo);
+    if (errosProduto.length > 0) {
+      erros.push(`Linha ${linha}: ${errosProduto.join(" ")}`);
+      return;
+    }
+    if (skusVistos.has(produto.sku)) {
+      erros.push(`Linha ${linha}: SKU ${produto.sku} repetido na lista.`);
+      return;
+    }
+    skusVistos.add(produto.sku);
+    dados.push(produto);
+  });
+
+  if (dados.length === 0 && erros.length === 0) {
+    erros.push("Preencha ao menos uma linha antes de salvar.");
+  }
+  return { dados, erros };
+}

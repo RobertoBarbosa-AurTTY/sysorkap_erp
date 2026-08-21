@@ -116,6 +116,27 @@ export const produtoRepository = {
     return doc.toObject();
   },
 
+  async skusExistentes(usuarioId: string, skus: string[]): Promise<string[]> {
+    if (skus.length === 0) return [];
+    await connectDatabase();
+    const encontrados = await ProdutoModel.find({
+      usuarioId: new Types.ObjectId(usuarioId),
+      sku: { $in: skus },
+    })
+      .select("sku")
+      .lean<{ sku: string }[]>();
+    return encontrados.map((p) => p.sku);
+  },
+
+  async criarVarios(usuarioId: string, lista: NovoProduto[]): Promise<number> {
+    if (lista.length === 0) return 0;
+    await connectDatabase();
+    const docs = await ProdutoModel.insertMany(
+      lista.map((dados) => ({ ...dados, usuarioId: new Types.ObjectId(usuarioId) })),
+    );
+    return docs.length;
+  },
+
   async buscarPorId(usuarioId: string, id: string): Promise<ProdutoDoc | null> {
     if (!Types.ObjectId.isValid(id)) return null;
     await connectDatabase();
