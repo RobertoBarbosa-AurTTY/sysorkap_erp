@@ -8,7 +8,7 @@
 
 [functions]
   node_bundler = "esbuild"
-  external_node_modules = ["express"]
+  external_node_modules = ["express", "ejs"]
 
 [functions.site]
   included_files = ["netlify/functions/site/views/**"]
