@@ -9,7 +9,7 @@
     </div>
   </div>
 
-  <nav class="flex-1 space-y-5 overflow-y-auto px-3 py-5 [scrollbar-width:thin] [&::-webkit-scrollbar]:w-1 [&::-webkit-scrollbar-thumb]:rounded-full [&::-webkit-scrollbar-thumb]:bg-zinc-800/80">
+  <nav class="flex-1 space-y-5 overflow-y-auto px-3 py-5">
     <% nav.secoes.forEach((secao) => { %>
       <div>
         <p class="px-3 pb-1.5 text-[10px] font-semibold uppercase tracking-[0.14em] text-zinc-600"><%= secao.label %></p>
@@ -33,7 +33,7 @@
               <div id="submenu-<%= item.key %>" class="grid transition-[grid-template-rows] duration-300 ease-out <%= aberto ? 'grid-rows-[1fr]' : 'grid-rows-[0fr]' %>">
                 <div class="overflow-hidden">
                   <div class="ml-[22px] mt-1 space-y-0.5 border-l border-white/[0.06] py-1 pl-3">
-                    <% item.filhos.forEach((filho) => { const filhoAtivo = nav.rotaAtiva(filho.href); %>
+                    <% item.filhos.forEach((filho) => { const filhoAtivo = nav.rotaAtiva(filho.href, true); %>
                       <a
                         href="<%= filho.href %>"
                         aria-current="<%= filhoAtivo ? 'page' : undefined %>"

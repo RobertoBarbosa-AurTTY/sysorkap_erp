@@ -94,7 +94,11 @@ export const secoesNav: SecaoNav[] = [
 ];
 
 export function helpersNav(caminho: string) {
-  const rotaAtiva = (href: string) =>
-    href === "/" ? caminho === "/" : caminho === href || caminho.startsWith(href + "/");
+  const rotaAtiva = (href: string, exato = false) =>
+    href === "/"
+      ? caminho === "/"
+      : exato
+        ? caminho === href
+        : caminho === href || caminho.startsWith(href + "/");
   return { icones, secoes: secoesNav, rotaAtiva };
 }

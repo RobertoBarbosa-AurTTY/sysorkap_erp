@@ -38,7 +38,7 @@
             <% secao.itens.forEach((item) => {
                  const links = item.filhos ?? [{ nome: item.nome, href: item.href }];
             %>
-              <% links.forEach((link) => { const ativo = nav.rotaAtiva(link.href); %>
+              <% links.forEach((link) => { const ativo = nav.rotaAtiva(link.href, link !== item); %>
                 <a
                   href="<%= link.href %>"
                   class="flex items-center gap-3 rounded-xl px-3 py-2.5 text-sm transition-colors <%= ativo ? 'bg-primary/15 font-medium text-white ring-1 ring-inset ring-primary/25' : 'text-zinc-400 hover:bg-white/5 hover:text-white' %>"
